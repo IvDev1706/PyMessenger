@@ -51,12 +51,12 @@ class ServerSocket:
                     drop_client(addr)
                     break
                 #manda el mensaje a todos los clientes
-                print(msg.decode())
-                """
                 for cliente in self._clients:
                     addrC, connC = cliente
-                    connC.sendall(msg)
-                """
+                    if addrC != addr:
+                        connC.sendall(msg)
+            except socket.timeout:
+                conn.send('v@'.encode())
             except ConnectionResetError:
                 #eliminar de la lista al cliente
                 drop_client(addr)
@@ -72,6 +72,7 @@ class ServerSocket:
         while True:
             #aceptar la conexion
             conn, addr = self._socket.accept()
+            conn.settimeout(1.0)
             print(f"Conexion establecida con {addr}")
             #guardamos los clientes que entrar
             self._clients.append((addr,conn))       
