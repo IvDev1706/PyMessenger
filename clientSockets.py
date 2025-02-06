@@ -28,7 +28,7 @@ class MessageSocket:
             cursor = cursor + sent
     
     def recive(self)->str:
-        return self._socket.recv(1024).decode()
+        return self._socket.recv(MessageSocket.MSGLEN).decode()
     
     def close(self)->None:
         print("Conexion cerrada!!!!!")

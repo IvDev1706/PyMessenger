@@ -12,6 +12,8 @@ try:
     #creamos el soceket
     soc = MessageSocket(usrname, host if host != '' else '127.0.0.1', port)
     soc.connect()
+    #mensaje de union
+    soc.send(f"{soc.getUserName()} se ha unido al chat".encode())
 
     while True:
         #el mensaje a enviar
@@ -24,7 +26,7 @@ try:
         msg = soc.getUserName()+': '+msg
         soc.send(msg.encode())
         #respuesta del servidor
-        print(soc.recive())
+        print(soc.recive()+'\n', end="")
     soc.close()
 except ConnectionRefusedError as e:
     print("El servidor rechazo la conexion o no esta activo")
