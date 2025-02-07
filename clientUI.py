@@ -69,12 +69,12 @@ class ClientMessenger(QWidget):
     
     def connectServer(self)->None:
         #ventana emergente
-        ip, _ = QInputDialog.getText(self,"Conexion a servidor","Ingrese la direccion ip del servidor:")
+        ip, _ = QInputDialog.getText(self,"Conexion a servidor","Ingrese la direccion ip del servidor:(127.0.0.1 por omision)")
         user, _ = QInputDialog.getText(self, "Nombre de usuario", "Ingrese su nombre de usuario:")
         
         try:
             #instancia de socket y conexion
-            self._soc = MessageSocket(user,ip,8000)
+            self._soc = MessageSocket(user,ip if ip != '' else '127.0.0.1',8000)
             self._soc.connect()
             self._soc.send(f"{self._soc.getUserName()} se ha unido al chat".encode())
             QMessageBox.information(self,"Conexion establecida","Se ha conectado al servidor!!",QMessageBox.StandardButton.Ok,QMessageBox.StandardButton.Ok)

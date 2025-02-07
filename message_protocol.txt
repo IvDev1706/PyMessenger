@@ -1,0 +1,50 @@
+Protocolo para envio de texto entre sockets
+*******************************************
+Los tipos de funciones de senotaran por letras acompañadas por @
+y se catalogaran en 3 tipos: mensaje, comandos y peticiones adicinalmente
+se añadira el tipo v@ que siginificara vacio osea aninguno de los anteriores
+
+Identificadores:
+Los identificadores se utilizaran para ubicar a los emisores, receptores 
+o a las salas y tambien se denotaran con @ pero con las letras de e@, r@,
+s@
+
+Forma de guardar usuarios:
+El servidor socket al aceptar la conexion el cliente le mandara su nombre
+de usuario y el servidor lo guardara junto con  su address en la lista de
+clientes. La identificacion de usuario sera puerto-nombre pero solo sera
+para el servidor, el cliente solo vera los nombres en los mensajes.
+
+Formato de instruccion:
+"e@ user [m, p, c]@ text [r@, s@] addr or number"
+  emisor    tipo    msg        receptor
+Las instrucciones siguen este formato y se manejaran de diferentes maneras
+dependiendo del tipo, por ejemplo las peticiones las procesa el servidor,
+los comandos los ejecuta el cliente y el mensaje solo se envia y reenvia
+cabe mencionar que las peticiones y los comandos omiten la parte del
+receptor o de la sala el mensaje no.
+
+Convicciones:
+- r@ all o s@ all quieren decir que se reenvia a todoslos receptores
+o salas.
+- s@ 0 es la sala global por defecto.
+- v@ es la instruccion vacia manda texto vacio y se omiten las operaciones
+- las instrucciones se separan por espacios para que el servidor las
+pueda particionar.
+
+Peticiones: (se pueden agregar mas)
+- users: envia al usuario la lista de usuarios en el servidor.
+- address: envia al usuario su puerto actual de conexion.
+- members: envia al usuario la lista de usuarios en la sala actual.
+- serverip: envia al usuario la ip del servidor.
+- serverport: envia al usuario el puerto del servidor.
+
+Comandos: (se pueden agregar mas)
+- bye: termina la conexion al servidor.
+- exit: cierra la aplicacion del cliente.
+- reconect: vuelve a conectarse al servidor.
+
+Forma de distincion:
+Para distinguir los mensajes, comandos y peticiones desde el cliente se
+necesita definir un tipo de escritura, el texto de mensaje es plano y normal
+para ingresar un comando se pone C\ comand y para las peticiones P\ request.
