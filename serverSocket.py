@@ -5,11 +5,11 @@ import threading
 #******* Clase de servidor socket *******#
 class ServerSocket:
     #******* Constructor de clase *******#
-    def __init__(self, socs:int)->None:
+    def __init__(self)->None:
         #instancias
-        self._port = 8000
+        self._port = 0
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self._socs = socs
+        self._socs = 0
         self._clients = []
         
         #configuracion del servidor
@@ -62,12 +62,22 @@ class ServerSocket:
                 drop_client(addr)
                 break
     
+    def start(self)->None:
+        #mensajes de bienvenida e info del servidor
+        print("|\/| PyMessenger Server |\/|")
+        print("****************************")
+        print("Ingrese el numero de puerto:")
+        self._port= int(input(">> "))
+        print("Ingrese los clientes maximos:")
+        self._socs = int(input(">> "))
+        print("Servidor configurado!!!!!")
+        print("****************************")
+    
     def run(self)->None:
         #info del servidor
-        print(f"Direccion del servidor: {self.__getIpAddress()}")
-        print(f"Puerto del servidor: {self._port}")
-        print("Conexiones:")
-        
+        print(f"Direccion IP WLAN: {self.__getIpAddress()}")
+        print(f"Puerto de servicio: {self._port}")
+        print("Consola:")
         #ciclo de vida
         while True:
             #aceptar la conexion
@@ -83,5 +93,6 @@ class ServerSocket:
         
 # Ejecutar el servidor
 if __name__ == "__main__":
-    server = ServerSocket(5)
-    server.run()
+    server = ServerSocket()
+    server.start()#configura los valores
+    server.run()#inicia el servicio

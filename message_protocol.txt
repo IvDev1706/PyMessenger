@@ -16,8 +16,8 @@ clientes. La identificacion de usuario sera puerto-nombre pero solo sera
 para el servidor, el cliente solo vera los nombres en los mensajes.
 
 Formato de instruccion:
-"e@ user [m, p, c]@ text [r@, s@] addr or number"
-  emisor    tipo    msg        receptor
+"e@--user--[m, p, c]@--text--[r@, s@]--addr or number"
+    emisor    tipo      msg               receptor
 Las instrucciones siguen este formato y se manejaran de diferentes maneras
 dependiendo del tipo, por ejemplo las peticiones las procesa el servidor,
 los comandos los ejecuta el cliente y el mensaje solo se envia y reenvia
@@ -29,7 +29,7 @@ Convicciones:
 o salas.
 - s@ 0 es la sala global por defecto.
 - v@ es la instruccion vacia manda texto vacio y se omiten las operaciones
-- las instrucciones se separan por espacios para que el servidor las
+- las instrucciones se separan por doble guion para que el servidor las
 pueda particionar.
 
 Peticiones: (se pueden agregar mas)
@@ -48,3 +48,15 @@ Forma de distincion:
 Para distinguir los mensajes, comandos y peticiones desde el cliente se
 necesita definir un tipo de escritura, el texto de mensaje es plano y normal
 para ingresar un comando se pone C\ comand y para las peticiones P\ request.
+
+Tabla de clientes:
+el servidor registrara esta tabla similar a un switch para controlar los 
+reenvios a salas o a solo un receptor.
+
+ejemplo de formato de tabla:
+addr | user | room
+------------------
+1234 | Luis | 0
+3456 | Ana  | 0
+6789 | Juan | 2
+1011 | Ivan | 3
