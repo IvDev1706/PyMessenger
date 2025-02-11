@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QPushButton, QLineEdit, QWidget, QLabel, QVBoxLayout, QHBoxLayout, QApplication, QInputDialog, QMessageBox
+from PyQt6.QtWidgets import QPushButton, QLineEdit, QWidget, QLabel, QGridLayout, QApplication, QMessageBox
 from PyQt6.QtCore import Qt
 import sys
 from clientSockets import MessageSocket
@@ -13,6 +13,13 @@ class ClientMessenger(QWidget):
         self._chatView = QLabel()
         self._chatPrompt = QLineEdit()
         self._btnSend = QPushButton()
+        self._lblserver = QLabel()
+        self._lblport = QLabel()
+        self._lblUser = QLabel()
+        self._campoServer = QLineEdit()
+        self._campoPort = QLineEdit()
+        self._campoUser = QLineEdit()
+        self._btnConnect = QPushButton()
         
         #socket de conexion
         self._soc = None
@@ -25,54 +32,86 @@ class ClientMessenger(QWidget):
     def __config(self)->None:
         #configuracion de ventana
         self.setWindowTitle("PyMessenger")
-        self.setFixedSize(400,300)
+        self.setFixedSize(500,400)
         
         #configuracion de componentes
         self._chatView.setText("Chats!!!\n")
         self._chatView.setAlignment(Qt.AlignmentFlag.AlignTop)
-        self._btnSend.setText("send")
+        self._btnSend.setText("enviar")
+        self._lblserver.setText("Ip de servidor:")
+        self._lblport.setText("Puerto del servidor:")
+        self._lblUser.setText("Nombre de usuario:")
+        self._btnConnect.setText("conectar")
+        self._campoServer.setFixedWidth(150)
+        self._campoPort.setFixedWidth(150)
+        self._campoUser.setFixedWidth(150)
         
     def __build(self)->None:
         #armado de la vista
-        #panel de envio
-        hLayout = QHBoxLayout()
-        hLayout.addWidget(self._chatPrompt)
-        hLayout.addWidget(self._btnSend)
+        #panel de configuracion
+        gLayout = QGridLayout()
+        gLayout.addWidget(self._lblserver,0,0)
+        gLayout.addWidget(self._campoServer,1,0)
+        gLayout.addWidget(self._lblport,2,0)
+        gLayout.addWidget(self._campoPort,3,0)
+        gLayout.addWidget(self._lblUser,4,0)
+        gLayout.addWidget(self._campoUser,5,0)
+        gLayout.addWidget(self._btnConnect,6,0)
         
-        #panel principal
-        vLayout = QVBoxLayout()
-        vLayout.addWidget(self._chatView)
-        vLayout.addLayout(hLayout)
+        #panel de chat
+        gLayout.addWidget(self._chatView,0,1,6,3)
+        gLayout.addWidget(self._chatPrompt,6,1,1,2)
+        gLayout.addWidget(self._btnSend,6,3)
         
         #adicion a la ventana
-        self.setLayout(vLayout)
+        self.setLayout(gLayout)
     
     def __listen(self)->None:
         #esucha del boton de enviar
         self._btnSend.clicked.connect(self.__sendMessage)
+        self._btnConnect.clicked.connect(self.__connectServer)
         
     def __sendMessage(self)->None:
         #obtener el texto del prompt
         texto = self._chatPrompt.text()
-        instruccion = 'e@--'+self._soc.getUserName()+'--m@--'+texto+"--s@--0"
-        log = self._soc.getUserName()+': '+texto
-        #se lo enviamos al servidor
-        self._soc.send(instruccion.encode())
-        #limpiamos la prompt
-        self._chatPrompt.setText('')
-        #pegamos el mensaje al chatView
-        self._chatView.setText(self._chatView.text()+log+'\n')
-    
+        
+        #validar que no sea comando
+        if not texto.startswith("C\\"):
+            instruccion = 'e@--'+self._soc.getUserName()+'--m@--'+texto+"--s@--0"
+            log = self._soc.getUserName()+': '+texto
+            #se lo enviamos al servidor
+            self._soc.send(instruccion.encode())
+            #limpiamos la prompt
+            self._chatPrompt.setText('')
+            #pegamos el mensaje al chatView
+            self._chatView.setText(self._chatView.text()+log+'\n')
+        else:
+            #interptretacion del comando
+            if texto == "C\\exit":
+                self.close()
+            elif texto =="C\\bye":
+                if self._soc != None:
+                    self._soc.close()
+                    self._chatPrompt.setText('')
+                    QMessageBox.information(self,"Conexion cerrada","Has dejado la sala!!",QMessageBox.StandardButton.Ok,QMessageBox.StandardButton.Ok)
+                else:
+                    self._chatPrompt.setText('')
+            else:
+                self._chatPrompt.setText('')
+                QMessageBox.warning(self,"Comando invalido","El comando ingresado es invalido!!",QMessageBox.StandardButton.Ok,QMessageBox.StandardButton.Ok)
+                
+            
     #sobreescritura del metodp
     def closeEvent(self, event)->None:
         #cerrar la conexion socket
-        self._soc.close()
+        if self._soc != None:
+            self._soc.close()
     
-    def connectServer(self)->None:
+    def __connectServer(self)->None:
         #ventana emergente
-        ip, _ = QInputDialog.getText(self,"Conexion a servidor","Ingrese la direccion ip del servidor:(127.0.0.1 por omision)")
-        port, _ = QInputDialog.getText(self,"Puerto de servidor","Ingrese el puerto del servidor")
-        user, _ = QInputDialog.getText(self, "Nombre de usuario", "Ingrese su nombre de usuario:")
+        ip = self._campoServer.text() if self._campoServer.text() != "" else "127.0.0.1"
+        port = int(self._campoPort.text())
+        user = self._campoUser.text()
         
         try:
             #instancia de socket y conexion
@@ -101,5 +140,4 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     messenger = ClientMessenger()
     messenger.show()
-    messenger.connectServer()
     sys.exit(app.exec())
