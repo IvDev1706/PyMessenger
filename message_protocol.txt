@@ -2,7 +2,7 @@ Protocolo para envio de texto entre sockets
 *******************************************
 Los tipos de funciones de senotaran por letras acompañadas por @
 y se catalogaran en 3 tipos: mensaje, comandos y peticiones adicinalmente
-se añadira el tipo v@ que siginificara vacio osea aninguno de los anteriores
+se añadira el tipo v@  que siginificara vacio osea aninguno de los anteriores
 
 Identificadores:
 Los identificadores se utilizaran para ubicar a los emisores, receptores 
@@ -31,6 +31,9 @@ o salas.
 - v@ es la instruccion vacia manda texto vacio y se omiten las operaciones
 - las instrucciones se separan por doble guion para que el servidor las
 pueda particionar.
+- los datos codificados se llaman mensage (msg).
+- los datos decodificados se llaman instruccion (inst).
+- y la instruccion partida se llama data.
 
 Peticiones: (se pueden agregar mas)
 - users: envia al usuario la lista de usuarios en el servidor.

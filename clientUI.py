@@ -54,13 +54,14 @@ class ClientMessenger(QWidget):
     def __sendMessage(self)->None:
         #obtener el texto del prompt
         texto = self._chatPrompt.text()
-        texto = self._soc.getUserName()+': '+texto
+        instruccion = 'e@--'+self._soc.getUserName()+'--m@--'+texto+"--s@--0"
+        log = self._soc.getUserName()+': '+texto
         #se lo enviamos al servidor
-        self._soc.send(texto.encode())
+        self._soc.send(instruccion.encode())
         #limpiamos la prompt
         self._chatPrompt.setText('')
         #pegamos el mensaje al chatView
-        self._chatView.setText(self._chatView.text()+texto+'\n')
+        self._chatView.setText(self._chatView.text()+log+'\n')
     
     #sobreescritura del metodp
     def closeEvent(self, event)->None:
@@ -70,13 +71,14 @@ class ClientMessenger(QWidget):
     def connectServer(self)->None:
         #ventana emergente
         ip, _ = QInputDialog.getText(self,"Conexion a servidor","Ingrese la direccion ip del servidor:(127.0.0.1 por omision)")
+        port, _ = QInputDialog.getText(self,"Puerto de servidor","Ingrese el puerto del servidor")
         user, _ = QInputDialog.getText(self, "Nombre de usuario", "Ingrese su nombre de usuario:")
         
         try:
             #instancia de socket y conexion
-            self._soc = MessageSocket(user,ip if ip != '' else '127.0.0.1',8000)
+            self._soc = MessageSocket(user,ip if ip != '' else '127.0.0.1',int(port))
             self._soc.connect()
-            self._soc.send(f"{self._soc.getUserName()} se ha unido al chat".encode())
+            self._soc.send(f"e@--{self._soc.getUserName()}--m@--{self._soc.getUserName()} se ha unido al chat--s@--0".encode())
             QMessageBox.information(self,"Conexion establecida","Se ha conectado al servidor!!",QMessageBox.StandardButton.Ok,QMessageBox.StandardButton.Ok)
             hilo = Thread(target=updateChat,args=(self._soc, self._chatView))
             hilo.start()
@@ -87,9 +89,10 @@ def updateChat(soc, chatView)->None:
         #ciclo de actualizacion
         while True:
             try:
-                texto = soc.recive()
-                if texto != 'v@':
-                    chatView.setText(chatView.text()+texto+'\n')
+                inst = soc.recive()
+                if inst != 'v@':
+                    data = inst.split('--')
+                    chatView.setText(chatView.text()+data[1]+': '+data[3]+'\n')
             except ConnectionAbortedError:
                 break
 

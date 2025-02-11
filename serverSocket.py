@@ -12,10 +12,6 @@ class ServerSocket:
         self._socs = 0
         self._clients = []
         
-        #configuracion del servidor
-        self._socket.bind(('',self._port))
-        self._socket.listen(self._socs)
-        
     #******* Metodos de instancia *******#
     def __getIpAddress(self)->str:
         #iterar sobre los adaptadores de red
@@ -38,7 +34,13 @@ class ServerSocket:
                 self._clients.remove(cliente)
                 break
     
-    def __handleclient(self, conn, addr, drop_client):
+    def __resend(self, addr, msg):
+        for cliente in self._clients:
+            addrC, connC, e, s = cliente
+            if addrC != addr:
+                connC.sendall(msg)
+    
+    def __handleclient(self, conn, addr, drop_client, resend):
         #ciclo de recepcion y envio
         while True:
             try:
@@ -46,25 +48,23 @@ class ServerSocket:
                 msg = conn.recv(1024)
                 #condicion de paro
                 if not msg:
-                    print(f"Cliente {addr} dejo de mandar datos")
+                    print(f"Cliente {addr} se desconecto")
                     #sacar al cliente de la lista
                     drop_client(addr)
                     break
                 #manda el mensaje a todos los clientes
-                for cliente in self._clients:
-                    addrC, connC = cliente
-                    if addrC != addr:
-                        connC.sendall(msg)
+                resend(addr,msg)
             except socket.timeout:
                 conn.send('v@'.encode())
             except ConnectionResetError:
                 #eliminar de la lista al cliente
+                print(f"Cliente {addr} se desconecto")
                 drop_client(addr)
                 break
     
     def start(self)->None:
         #mensajes de bienvenida e info del servidor
-        print("|\/| PyMessenger Server |\/|")
+        print("<<-- PyMessenger Server -->>")
         print("****************************")
         print("Ingrese el numero de puerto:")
         self._port= int(input(">> "))
@@ -72,6 +72,9 @@ class ServerSocket:
         self._socs = int(input(">> "))
         print("Servidor configurado!!!!!")
         print("****************************")
+        #configuracion del servidor
+        self._socket.bind(('',self._port))
+        self._socket.listen(self._socs)
     
     def run(self)->None:
         #info del servidor
@@ -85,10 +88,15 @@ class ServerSocket:
             conn.settimeout(1.0)
             print(f"Conexion establecida con {addr}")
             #guardamos los clientes que entrar
-            self._clients.append((addr,conn))       
+            inst = conn.recv(1024).decode()
+            data = inst.split('--')
+            self._clients.append((addr,conn,data[1],data[5]))
+            
+            #reenvio de mensaje de union
+            self.__resend(addr,inst.encode())
             
             #hilos de cliente
-            hilo_cliente = threading.Thread(target=self.__handleclient,args=(conn,addr,self.__drop_client))
+            hilo_cliente = threading.Thread(target=self.__handleclient,args=(conn,addr,self.__drop_client,self.__resend))
             hilo_cliente.start()
         
 # Ejecutar el servidor
