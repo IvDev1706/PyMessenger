@@ -24,5 +24,4 @@ Los mensajes son texto plano que simplemente se envia y se reenvia entre usuario
 Los comandos se denotan por C\command y son procesados por el cliente.
 
 ### Peticiones
-Las peticiones se denotan por P\request y son procesadas por el servidor y este mismo
-responde al usuario solicitante.
+Las peticiones se denotan por P\request y son procesadas por el servidor y este mismo responde al usuario solicitante.

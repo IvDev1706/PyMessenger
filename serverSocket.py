@@ -65,6 +65,21 @@ class ServerSocket:
                                 break
                         #reenvio de mensaje de cambio
                         conn.sendall(f"e@--Server--m@--Te has cambiado a la sala {room}--s@--{room}".encode())
+                    elif 'P\\address':
+                        for cliente in self._clients:
+                            if addr in cliente:
+                                conn.sendall(f"e@--Server--m@--Tu direccion es: {cliente[0]}--s@--{cliente[3]}".encode())
+                                break
+                    elif 'P\\serverip':
+                        for cliente in self._clients:
+                            if addr in cliente:
+                                conn.sendall(f"e@--Server--m@--Ipv4 (WLAN) del servidor ({self._serverIp})--s@--{cliente[3]}".encode())
+                                break
+                    elif 'P\\serverport':
+                        for cliente in self._clients:
+                            if addr in cliente:
+                                conn.sendall(f"e@--Server--m@--Puerto del servidor ({self._serverIp})--s@--{cliente[3]}".encode())
+                                break
                 else:
                     #manda el mensaje a todos los clientes
                     resend(addr,msg,data[5])
@@ -91,8 +106,9 @@ class ServerSocket:
         self._socket.listen(self._socs)
     
     def run(self)->None:
+        self._serverIp = self.__getIpAddress()
         #info del servidor
-        print(f"Direccion IP WLAN: {self.__getIpAddress()}")
+        print(f"Direccion IP WLAN: {self._serverIp}")
         print(f"Puerto de servicio: {self._port}")
         print("Consola:")
         #ciclo de vida

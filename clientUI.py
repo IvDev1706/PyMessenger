@@ -132,6 +132,10 @@ class ClientMessenger(QWidget):
             self._soc.connect()
             self._soc.send(f"e@--{self._soc.getUserName()}--m@--{self._soc.getUserName()} se ha unido al chat--s@--0".encode())
             QMessageBox.information(self,"Conexion establecida","Se ha conectado al servidor!!",QMessageBox.StandardButton.Ok,QMessageBox.StandardButton.Ok)
+            #limpieza de campos
+            self._campoServer.setText('')
+            self._campoPort.setText('')
+            self._campoUser.setText('')
             hilo = Thread(target=updateChat,args=(self._soc, self._chatView))
             hilo.start()
         except ConnectionRefusedError:
