@@ -34,11 +34,11 @@ class ServerSocket:
                 self._clients.remove(cliente)
                 break
     
-    def __resend(self, addr, msg):
+    def __resend(self, addr, msg, room):
         for cliente in self._clients:
-            addrC, connC, e, s = cliente
-            if addrC != addr:
-                connC.sendall(msg)
+            if addr != cliente[0]:
+                if room == cliente[3]:
+                    cliente[1].sendall(msg)
     
     def __handleclient(self, conn, addr, drop_client, resend):
         #ciclo de recepcion y envio
@@ -52,8 +52,22 @@ class ServerSocket:
                     #sacar al cliente de la lista
                     drop_client(addr)
                     break
-                #manda el mensaje a todos los clientes
-                resend(addr,msg)
+                #filtrado de instruccion
+                inst = msg.decode()
+                data = inst.split('--')
+                if data[2] == 'p@':
+                    #comandos de servidor
+                    if 'P\\join' in data[3]:
+                        room = data[3].split(' ')[1]
+                        for cliente in self._clients:
+                            if cliente[0] == addr:
+                                cliente[3] = room
+                                break
+                        #reenvio de mensaje de cambio
+                        conn.sendall(f"e@--Server--m@--Te has cambiado a la sala {room}--s@--{room}".encode())
+                else:
+                    #manda el mensaje a todos los clientes
+                    resend(addr,msg,data[5])
             except socket.timeout:
                 conn.send('v@'.encode())
             except ConnectionResetError:
@@ -90,10 +104,10 @@ class ServerSocket:
             #guardamos los clientes que entrar
             inst = conn.recv(1024).decode()
             data = inst.split('--')
-            self._clients.append((addr,conn,data[1],data[5]))
+            self._clients.append([addr,conn,data[1],data[5]])
             
             #reenvio de mensaje de union
-            self.__resend(addr,inst.encode())
+            self.__resend(addr,inst.encode(),data[5])
             
             #hilos de cliente
             hilo_cliente = threading.Thread(target=self.__handleclient,args=(conn,addr,self.__drop_client,self.__resend))

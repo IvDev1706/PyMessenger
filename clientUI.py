@@ -77,35 +77,48 @@ class ClientMessenger(QWidget):
         
         #validar que no sea comando
         if not texto.startswith("C\\"):
-            instruccion = 'e@--'+self._soc.getUserName()+'--m@--'+texto+"--s@--0"
-            log = self._soc.getUserName()+': '+texto
+            if texto.startswith("P\\"):
+                instruccion = 'e@--'+self._soc.getUserName()+'--p@--'+texto+"--s@--"+self._soc.getRoom()
+            else:
+                instruccion = 'e@--'+self._soc.getUserName()+'--m@--'+texto+"--s@--"+self._soc.getRoom()
+                log = self._soc.getUserName()+': '+texto
+                #pegamos el mensaje al chatView
+                self._chatView.setText(self._chatView.text()+log+'\n')
             #se lo enviamos al servidor
             self._soc.send(instruccion.encode())
             #limpiamos la prompt
             self._chatPrompt.setText('')
-            #pegamos el mensaje al chatView
-            self._chatView.setText(self._chatView.text()+log+'\n')
         else:
             #interptretacion del comando
             if texto == "C\\exit":
                 self.close()
-            elif texto =="C\\bye":
-                if self._soc != None:
-                    self._soc.close()
+            if self._soc != None:
+                if texto =="C\\bye":
+                    if self._soc.isConnected():
+                        self._soc.close()
+                        QMessageBox.information(self,"Conexion cerrada","Has dejado la sala!!",QMessageBox.StandardButton.Ok,QMessageBox.StandardButton.Ok)
                     self._chatPrompt.setText('')
-                    QMessageBox.information(self,"Conexion cerrada","Has dejado la sala!!",QMessageBox.StandardButton.Ok,QMessageBox.StandardButton.Ok)
+                elif texto == "C\\reconnect":
+                    if not self._soc.isConnected():
+                        self._soc.reborn()
+                        self._soc.connect()
+                        self._soc.send(f"e@--{self._soc.getUserName()}--m@--{self._soc.getUserName()} ha vuelto al chat--s@--{self._soc.getRoom()}".encode())
+                        QMessageBox.information(self,"Conexion reestablecida","Has vuelto al servidor!!",QMessageBox.StandardButton.Ok,QMessageBox.StandardButton.Ok)
+                    self._chatPrompt.setText('')
                 else:
                     self._chatPrompt.setText('')
+                    QMessageBox.warning(self,"Comando invalido","El comando ingresado es invalido!!",QMessageBox.StandardButton.Ok,QMessageBox.StandardButton.Ok)
             else:
                 self._chatPrompt.setText('')
-                QMessageBox.warning(self,"Comando invalido","El comando ingresado es invalido!!",QMessageBox.StandardButton.Ok,QMessageBox.StandardButton.Ok)
                 
             
     #sobreescritura del metodp
     def closeEvent(self, event)->None:
         #cerrar la conexion socket
         if self._soc != None:
-            self._soc.close()
+            if self._soc.isConnected():
+                self._soc.close()
+            
     
     def __connectServer(self)->None:
         #ventana emergente
@@ -131,6 +144,8 @@ def updateChat(soc, chatView)->None:
                 inst = soc.recive()
                 if inst != 'v@':
                     data = inst.split('--')
+                    if data[5] != soc.getRoom():
+                        soc.setRoom(data[5])
                     chatView.setText(chatView.text()+data[1]+': '+data[3]+'\n')
             except ConnectionAbortedError:
                 break

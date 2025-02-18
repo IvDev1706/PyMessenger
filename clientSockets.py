@@ -9,11 +9,14 @@ class MessageSocket:
         self._username = usrname
         self._host = host
         self._port = port
+        self._room = '0'
+        self._connected = False
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     #******* Metodos de instancia *******#
     def connect(self)->None:
         #conexion del socket
         self._socket.connect((self._host, self._port))
+        self._connected = True
     
     def send(self, msg):
         #cursor para mandar caracter a caracter
@@ -30,9 +33,22 @@ class MessageSocket:
     def recive(self)->str:
         return self._socket.recv(MessageSocket.MSGLEN).decode()
     
+    def reborn(self)->None:
+        self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    
     def close(self)->None:
         print("Conexion cerrada!!!!!")
+        self._connected = False
         self._socket.close()
     #******* Metodos de atributo *******#
     def getUserName(self)->str:
         return self._username
+    
+    def getRoom(self)->str:
+        return self._room
+    
+    def setRoom(self, room:str)->None:
+        self._room = room
+        
+    def isConnected(self)->bool:
+        return self._connected
