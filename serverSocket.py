@@ -65,21 +65,46 @@ class ServerSocket:
                                 break
                         #reenvio de mensaje de cambio
                         conn.sendall(f"e@--Server--m@--Te has cambiado a la sala {room}--s@--{room}".encode())
-                    elif 'P\\address':
+                    elif 'P\\address' in data[3]:
                         for cliente in self._clients:
                             if addr in cliente:
                                 conn.sendall(f"e@--Server--m@--Tu direccion es: {cliente[0]}--s@--{cliente[3]}".encode())
                                 break
-                    elif 'P\\serverip':
+                    elif 'P\\serverip' in data[3]:
                         for cliente in self._clients:
                             if addr in cliente:
                                 conn.sendall(f"e@--Server--m@--Ipv4 (WLAN) del servidor ({self._serverIp})--s@--{cliente[3]}".encode())
                                 break
-                    elif 'P\\serverport':
+                    elif 'P\\serverport' in data[3]:
                         for cliente in self._clients:
                             if addr in cliente:
-                                conn.sendall(f"e@--Server--m@--Puerto del servidor ({self._serverIp})--s@--{cliente[3]}".encode())
+                                conn.sendall(f"e@--Server--m@--Puerto del servidor ({self._port})--s@--{cliente[3]}".encode())
                                 break
+                    elif 'P\\users' in data[3]:
+                        users = ''
+                        room = ''
+                        for cliente in self._clients:
+                            #filtro de emisor
+                            if addr in cliente:
+                                room = cliente[3]
+                            #listado de usuarios en el servidor
+                            _, addrC = cliente[0]
+                            users += f'({addrC}, {cliente[2]}) '
+                        conn.sendall(f"e@--Server--m@--{users}--s@--{room}".encode())
+                    elif 'P\\members' in data[3]:
+                        room = ''
+                        members = ''
+                        #barrido de clientes
+                        for cliente in self._clients:
+                            #filtro del emisor
+                            if addr in cliente:
+                                room = cliente[3]
+                            #filtro de sala
+                            if cliente[3] == room:
+                                _, addrC = cliente[0]
+                                members += f'({addrC}, {cliente[2]}) '
+                        #reenvio al solicitante
+                        conn.sendall(f"e@--Server--m@--{members}--s@--{room}".encode())
                 else:
                     #manda el mensaje a todos los clientes
                     resend(addr,msg,data[5])
